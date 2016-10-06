@@ -560,99 +560,113 @@ void AC_AttitudeControl::update_rate_bf_targets()
 // rate_bf_to_motor_roll - ask the rate controller to calculate the motor outputs to achieve the target rate in centi-degrees / second
 float AC_AttitudeControl::rate_bf_to_motor_roll(float rate_target_cds)
 {
-    float p,i,d;            // used to capture pid values for logging
+    // float p,i,d;            // used to capture pid values for logging
     float current_rate;     // this iteration's rate
     float rate_error;       // simply target_rate - current_rate
-
+    float u0;
     // get current rate
     // To-Do: make getting gyro rates more efficient?
     current_rate = (_ahrs.get_gyro().x * AC_ATTITUDE_CONTROL_DEGX100);
 
     // calculate error and call pid controller
-    rate_error = rate_target_cds - current_rate;
-    p = _pid_rate_roll.get_p(rate_error);
+    // rate_error = rate_target_cds - current_rate;
+    // p = _pid_rate_roll.get_p(rate_error);
 
     // get i term
-    i = _pid_rate_roll.get_integrator();
+    // i = _pid_rate_roll.get_integrator();
 
     // update i term as long as we haven't breached the limits or the I term will certainly reduce
-    if (!_motors.limit.roll_pitch || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
-        i = _pid_rate_roll.get_i(rate_error, _dt);
-    }
+    // if (!_motors.limit.roll_pitch || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
+        // i = _pid_rate_roll.get_i(rate_error, _dt);
+    // }
 
     // get d term
-    d = _pid_rate_roll.get_d(rate_error, _dt);
-
+    // d = _pid_rate_roll.get_d(rate_error, _dt);
+    rate_error = _roll_obs.x - current_rate;
+	_roll_obs.z=_roll_obs.z-_dt*_roll_eso.z*rate_error;
+	_roll_obs.y=_roll_obs.y+_dt*(_roll_obs.z-_roll_eso.y*rate_error+_pid_rate_roll.kI()*_roll_u);
+	_roll_obs.x=_roll_obs.x+_dt*(_roll_obs.y-_roll_eso.x*rate_error);
+	u0=_pid_rate_roll.kP()*(rate_target_cds- _roll_obs.x)-_pid_rate_roll.kD()*_roll_obs.y;
+	_roll_u=(u0-_roll_obs.z)/_pid_rate_roll.kI();
+	
     // constrain output and return
-    return constrain_float((p+i+d), -AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX, AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX);
-
+    // return constrain_float((p+i+d), -AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX, AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX);
+    return constrain_float(_roll_u, -AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX, AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX);
     // To-Do: allow logging of PIDs?
 }
 
 // rate_bf_to_motor_pitch - ask the rate controller to calculate the motor outputs to achieve the target rate in centi-degrees / second
 float AC_AttitudeControl::rate_bf_to_motor_pitch(float rate_target_cds)
 {
-    float p,i,d;            // used to capture pid values for logging
+    // float p,i,d;            // used to capture pid values for logging
     float current_rate;     // this iteration's rate
     float rate_error;       // simply target_rate - current_rate
-
+    float u0;
     // get current rate
     // To-Do: make getting gyro rates more efficient?
     current_rate = (_ahrs.get_gyro().y * AC_ATTITUDE_CONTROL_DEGX100);
 
     // calculate error and call pid controller
-    rate_error = rate_target_cds - current_rate;
-    p = _pid_rate_pitch.get_p(rate_error);
+    // rate_error = rate_target_cds - current_rate;
+    // p = _pid_rate_pitch.get_p(rate_error);
 
     // get i term
-    i = _pid_rate_pitch.get_integrator();
+    // i = _pid_rate_pitch.get_integrator();
 
     // update i term as long as we haven't breached the limits or the I term will certainly reduce
-    if (!_motors.limit.roll_pitch || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
-        i = _pid_rate_pitch.get_i(rate_error, _dt);
-    }
+    // if (!_motors.limit.roll_pitch || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
+        // i = _pid_rate_pitch.get_i(rate_error, _dt);
+    // }
 
     // get d term
-    d = _pid_rate_pitch.get_d(rate_error, _dt);
-
+    // d = _pid_rate_pitch.get_d(rate_error, _dt);
+     _pitch_obs.z=_pitch_obs.z-_dt*_pitch_eso.z*rate_error;
+	 _pitch_obs.y=_pitch_obs.y+_dt*(_pitch_obs.z-_pitch_eso.y*rate_error+_pid_rate_pitch.kI()*_pitch_u);
+	 _pitch_obs.x=_pitch_obs.x+_dt*(_pitch_obs.y-_pitch_eso.x*rate_error);
+	 u0=_pid_rate_pitch.kP()*(rate_target_cds- _pitch_obs.x)-_pid_rate_pitch.kD()*_pitch_obs.y;
+	 _pitch_u=(u0-_pitch_obs.z)/_pid_rate_pitch.kI();
     // constrain output and return
-    return constrain_float((p+i+d), -AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX, AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX);
-
+    // return constrain_float((p+i+d), -AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX, AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX);
+    return constrain_float(_pitch_u, -AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX, AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX);
     // To-Do: allow logging of PIDs?
 }
 
 // rate_bf_to_motor_yaw - ask the rate controller to calculate the motor outputs to achieve the target rate in centi-degrees / second
 float AC_AttitudeControl::rate_bf_to_motor_yaw(float rate_target_cds)
 {
-    float p,i,d;            // used to capture pid values for logging
+    // float p,i,d;            // used to capture pid values for logging
     float current_rate;     // this iteration's rate
     float rate_error;       // simply target_rate - current_rate
-
+    float u0;
     // get current rate
     // To-Do: make getting gyro rates more efficient?
     current_rate = (_ahrs.get_gyro().z * AC_ATTITUDE_CONTROL_DEGX100);
 
     // calculate error and call pid controller
-    rate_error  = rate_target_cds - current_rate;
-    p = _pid_rate_yaw.get_p(rate_error);
+    // rate_error  = rate_target_cds - current_rate;
+    // p = _pid_rate_yaw.get_p(rate_error);
 
     // separately calculate p, i, d values for logging
-    p = _pid_rate_yaw.get_p(rate_error);
+    // p = _pid_rate_yaw.get_p(rate_error);
 
     // get i term
-    i = _pid_rate_yaw.get_integrator();
+    // i = _pid_rate_yaw.get_integrator();
 
     // update i term as long as we haven't breached the limits or the I term will certainly reduce
-    if (!_motors.limit.yaw || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
-        i = _pid_rate_yaw.get_i(rate_error, _dt);
-    }
+    // if (!_motors.limit.yaw || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
+        // i = _pid_rate_yaw.get_i(rate_error, _dt);
+    // }
 
     // get d value
-    d = _pid_rate_yaw.get_d(rate_error, _dt);
-
+    // d = _pid_rate_yaw.get_d(rate_error, _dt);
+    _yaw_obs.z=_yaw_obs.z-_dt*_yaw_eso.z*rate_error;
+	 _yaw_obs.y=_yaw_obs.y+_dt*(_yaw_obs.z-_yaw_eso.y*rate_error+_pid_rate_yaw.kI()*_yaw_u);
+	 _yaw_obs.x=_yaw_obs.x+_dt*(_yaw_obs.y-_yaw_eso.x*rate_error);
+	 u0=_pid_rate_yaw.kP()*(rate_target_cds- _yaw_obs.x)-_pid_rate_yaw.kD()*_yaw_obs.y;
+	 _yaw_u=(u0-_yaw_obs.z)/_pid_rate_yaw.kI();
     // constrain output and return
-    return constrain_float((p+i+d), -AC_ATTITUDE_RATE_YAW_CONTROLLER_OUT_MAX, AC_ATTITUDE_RATE_YAW_CONTROLLER_OUT_MAX);
-
+    // return constrain_float((p+i+d), -AC_ATTITUDE_RATE_YAW_CONTROLLER_OUT_MAX, AC_ATTITUDE_RATE_YAW_CONTROLLER_OUT_MAX);
+    return constrain_float(_yaw_u, -AC_ATTITUDE_RATE_YAW_CONTROLLER_OUT_MAX, AC_ATTITUDE_RATE_YAW_CONTROLLER_OUT_MAX);
     // To-Do: allow logging of PIDs?
 }
 

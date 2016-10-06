@@ -254,6 +254,15 @@ protected:
     Vector3f            _rate_bf_desired;       // body-frame feed forward rates
     int16_t             _angle_boost;           // used only for logging
     int16_t             _acro_angle_switch;           // used only for logging
+	Vector3f            _roll_obs;
+	Vector3f            _pitch_obs;
+	Vector3f            _yaw_obs;
+	Vector3f            _roll_eso;
+	Vector3f            _pitch_eso;
+	Vector3f            _yaw_eso;
+	float               _roll_u;
+	float               _pitch_u;
+	float               _yaw_u;
 };
 
 #define AC_ATTITUDE_CONTROL_LOG_FORMAT(msg) { msg, sizeof(AC_AttitudeControl::log_Attitude),	\
