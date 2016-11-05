@@ -617,7 +617,7 @@ float AC_AttitudeControl::rate_bf_to_motor_pitch(float rate_target_cds)
     // if (!_motors.limit.roll_pitch || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
         // i = _pid_rate_pitch.get_i(rate_error, _dt);
     // }
-
+     rate_error = _pitch_obs.x - current_rate;
     // get d term
     // d = _pid_rate_pitch.get_d(rate_error, _dt);
      _pitch_obs.z=_pitch_obs.z-_dt*_pitch_eso.z*rate_error;
@@ -656,7 +656,7 @@ float AC_AttitudeControl::rate_bf_to_motor_yaw(float rate_target_cds)
     // if (!_motors.limit.yaw || ((i>0&&rate_error<0)||(i<0&&rate_error>0))) {
         // i = _pid_rate_yaw.get_i(rate_error, _dt);
     // }
-
+    rate_error = _yaw_obs.x - current_rate;
     // get d value
     // d = _pid_rate_yaw.get_d(rate_error, _dt);
     _yaw_obs.z=_yaw_obs.z-_dt*_yaw_eso.z*rate_error;
